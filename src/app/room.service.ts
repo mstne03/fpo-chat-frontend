@@ -43,6 +43,10 @@ export class RoomService {
   activeRoomId: string | null = null;
 
   async connectControl(): Promise<void> {
+    if (this.reconnectTimer !== null) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     if (this.controlSocket$) {
       this.controlSocket$.complete();
       this.controlSocket$ = null;
@@ -82,6 +86,7 @@ export class RoomService {
   }
 
   private scheduleReconnect(): void {
+    if (this.reconnectTimer !== null) return;
     if (this.controlReconnectAttempts >= this.maxReconnectAttempts) {
       console.warn(
         '[RoomService] Control socket: max reconnect attempts reached. ' +
@@ -176,6 +181,7 @@ export class RoomService {
       error: () => {
         this.roomError$.next('Conexión con la sala perdida');
         this.activeRoomId = null;
+        this.chatSocket$ = null;
       },
     });
   }
