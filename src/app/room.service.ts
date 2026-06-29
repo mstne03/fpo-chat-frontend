@@ -38,6 +38,10 @@ export class RoomService {
   activeRoomId: string | null = null;
 
   async connectControl(): Promise<void> {
+    if (this.controlSocket$) {
+      this.controlSocket$.complete();
+      this.controlSocket$ = null;
+    }
     const token = await this.authService.getToken();
     this.controlSocket$ = webSocket<unknown>(
       `${environment.wsBase}/ws/control?token=${token}`,
