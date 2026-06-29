@@ -35,7 +35,7 @@ export class AuthComponent {
       } else {
         await this.authService.signUp(this.email, this.password);
       }
-      this.router.navigate(['/chat']);
+      this.router.navigate(['/lobby']);
     } catch (err: any) {
       this.errorMessage = this.mapError(err.code);
     } finally {
