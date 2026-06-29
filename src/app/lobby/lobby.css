@@ -497,7 +497,6 @@
 }
 
 .message.claude-streaming {
-  box-shadow: var(--glow-cyan);
   animation: glow-pulse 1.4s ease-in-out infinite;
 }
 

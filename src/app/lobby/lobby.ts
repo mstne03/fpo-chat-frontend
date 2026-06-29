@@ -45,7 +45,11 @@ export class LobbyComponent implements OnInit, OnDestroy {
   }
 
   isClaudeStreaming(msg: ChatMessage): boolean {
-    return msg.uid === 'claude' && [...this.claudeInProgress.values()].includes(msg);
+    if (msg.uid !== 'claude') return false;
+    for (const v of this.claudeInProgress.values()) {
+      if (v === msg) return true;
+    }
+    return false;
   }
 
   async ngOnInit(): Promise<void> {
