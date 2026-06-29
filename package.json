@@ -13,9 +13,6 @@
   "engines": {
     "node": "22.x"
   },
-  "engines": {
-    "node": "22.x"
-  },
   "dependencies": {
     "@angular/common": "^22.0.0",
     "@angular/compiler": "^22.0.0",
