@@ -32,6 +32,11 @@ export class RoomService {
   private controlSocket$: WebSocketSubject<unknown> | null = null;
   private chatSocket$: WebSocketSubject<ChatMessage> | null = null;
 
+  private controlReconnectAttempts = 0;
+  private readonly maxReconnectAttempts = 5;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private isIntentionalDisconnect = false;
+
   rooms$ = new BehaviorSubject<Room[]>([]);
   messages$ = new Subject<ChatMessage>();
   roomError$ = new Subject<string>();
@@ -42,17 +47,87 @@ export class RoomService {
       this.controlSocket$.complete();
       this.controlSocket$ = null;
     }
-    const token = await this.authService.getToken();
+    this.isIntentionalDisconnect = false;
+    this.controlReconnectAttempts = 0;
+
+    let token: string;
+    try {
+      token = await this.authService.getToken();
+    } catch {
+      this.authService.signOut();
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    this.openControlSocket(token);
+  }
+
+  private openControlSocket(token: string): void {
     this.controlSocket$ = webSocket<unknown>(
       `${environment.wsBase}/ws/control?token=${token}`,
     );
     this.controlSocket$.subscribe({
-      next: (msg) => this.handleControl(msg as ControlIn),
+      next: (msg) => {
+        this.controlReconnectAttempts = 0;
+        this.handleControl(msg as ControlIn);
+      },
       error: () => {
-        this.authService.signOut();
-        this.router.navigate(['/login']);
+        if (this.isIntentionalDisconnect) {
+          return;
+        }
+        this.controlSocket$ = null;
+        this.scheduleReconnect();
       },
     });
+  }
+
+  private scheduleReconnect(): void {
+    if (this.controlReconnectAttempts >= this.maxReconnectAttempts) {
+      console.warn(
+        '[RoomService] Control socket: max reconnect attempts reached. ' +
+          'The user can refresh to reconnect.',
+      );
+      return;
+    }
+
+    const delay = Math.min(1000 * Math.pow(2, this.controlReconnectAttempts), 16000);
+    this.controlReconnectAttempts++;
+
+    console.warn(
+      `[RoomService] Control socket dropped. Reconnect attempt ` +
+        `${this.controlReconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms...`,
+    );
+
+    this.reconnectTimer = setTimeout(async () => {
+      this.reconnectTimer = null;
+
+      let token: string;
+      try {
+        token = await this.authService.getToken();
+      } catch {
+        // Firebase session is genuinely gone — sign out.
+        this.authService.signOut();
+        this.router.navigate(['/login']);
+        return;
+      }
+
+      if (!this.isIntentionalDisconnect) {
+        this.openControlSocket(token);
+      }
+    }, delay);
+  }
+
+  disconnectControl(): void {
+    this.isIntentionalDisconnect = true;
+    if (this.reconnectTimer !== null) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+    if (this.controlSocket$) {
+      this.controlSocket$.complete();
+      this.controlSocket$ = null;
+    }
+    this.controlReconnectAttempts = 0;
   }
 
   private handleControl(msg: ControlIn): void {
@@ -87,9 +162,11 @@ export class RoomService {
           if (event.code === 4001) {
             this.roomError$.next('Esta sala fue eliminada');
             this.activeRoomId = null;
+            this.chatSocket$ = null;
           } else if (event.code === 4004) {
             this.roomError$.next('La sala no existe');
             this.activeRoomId = null;
+            this.chatSocket$ = null;
           }
         },
       },
