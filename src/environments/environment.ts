@@ -1,5 +1,5 @@
 export const environment = {
-  wsUrl: 'ws://localhost:8000/ws',
+  wsBase: 'ws://localhost:8000',
   firebase: {
     apiKey: 'AIzaSyCimIMiGCs-VFNlJx3zmynBEvKaBPQirUM',
     authDomain: 'fpo-chat.firebaseapp.com',
