@@ -3,7 +3,7 @@ services:
   - type: web
     name: fpo-chat-frontend
     runtime: static
-    buildCommand: npm ci && npm run build
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
     staticPublishPath: dist/fpo-chat/browser
     routes:
       # SPA fallback: cualquier ruta sirve index.html (necesario para el router de Angular).
