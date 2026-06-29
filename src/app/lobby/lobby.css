@@ -481,3 +481,40 @@
   }
   .input-row { padding: 14px; }
 }
+
+/* ---------- BURBUJAS CLAUDE ---------- */
+.message.claude {
+  align-self: flex-start;
+  border: 1px solid rgba(56, 232, 255, 0.35);
+  border-left: 2px solid var(--cyan);
+  background: rgba(6, 30, 40, 0.75);
+}
+
+.message.claude .sender {
+  color: var(--cyan);
+  opacity: 1;
+  font-weight: 700;
+}
+
+.message.claude-streaming {
+  box-shadow: var(--glow-cyan);
+  animation: glow-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(56, 232, 255, 0.25); }
+  50%       { box-shadow: 0 0 22px rgba(56, 232, 255, 0.6); }
+}
+
+.cursor-blink {
+  display: inline-block;
+  color: var(--cyan);
+  animation: blink 0.9s step-start infinite;
+  margin-left: 2px;
+  font-size: 0.85em;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}

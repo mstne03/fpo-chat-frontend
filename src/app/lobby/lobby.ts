@@ -32,6 +32,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
   createError = '';
   roomError = '';
 
+  private claudeInProgress = new Map<string, ChatMessage>();
   private subs: Subscription[] = [];
 
   get activeRoomId(): string | null {
@@ -41,6 +42,10 @@ export class LobbyComponent implements OnInit, OnDestroy {
   get activeRoomName(): string {
     const r = this.rooms.find((x) => x.id === this.activeRoomId);
     return r ? r.name : '';
+  }
+
+  isClaudeStreaming(msg: ChatMessage): boolean {
+    return msg.uid === 'claude' && [...this.claudeInProgress.values()].includes(msg);
   }
 
   async ngOnInit(): Promise<void> {
@@ -68,6 +73,35 @@ export class LobbyComponent implements OnInit, OnDestroy {
       this.roomService.roomError$.subscribe((err) => {
         this.roomError = err;
         this.messages = [];
+        this.claudeInProgress.clear();
+        this.cdr.markForCheck();
+      }),
+    );
+    this.subs.push(
+      this.roomService.claudeStart$.subscribe(({ id }) => {
+        const bubble: ChatMessage = {
+          uid: 'claude',
+          email: 'Claude',
+          text: '',
+          timestamp: new Date().toISOString(),
+        };
+        this.claudeInProgress.set(id, bubble);
+        this.messages.push(bubble);
+        this.cdr.markForCheck();
+      }),
+    );
+    this.subs.push(
+      this.roomService.claudeDelta$.subscribe(({ id, text }) => {
+        const bubble = this.claudeInProgress.get(id);
+        if (bubble) {
+          bubble.text += text;
+          this.cdr.markForCheck();
+        }
+      }),
+    );
+    this.subs.push(
+      this.roomService.claudeEnd$.subscribe(({ id }) => {
+        this.claudeInProgress.delete(id);
         this.cdr.markForCheck();
       }),
     );
@@ -78,12 +112,14 @@ export class LobbyComponent implements OnInit, OnDestroy {
   async selectRoom(room: Room): Promise<void> {
     if (room.id === this.activeRoomId) return;
     this.messages = [];
+    this.claudeInProgress.clear();
     this.roomError = '';
     await this.roomService.joinRoom(room.id);
   }
 
   backToRooms(): void {
     this.messages = [];
+    this.claudeInProgress.clear();
     this.roomError = '';
     this.roomService.leaveRoom();
   }
@@ -118,6 +154,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
     if (this.activeRoomId) {
       this.roomService.deleteRoom(this.activeRoomId);
       this.messages = [];
+      this.claudeInProgress.clear();
     }
   }
 

@@ -53,10 +53,12 @@
           *ngFor="let msg of messages"
           class="message"
           [class.own]="msg.uid === currentUid"
+          [class.claude]="msg.uid === 'claude'"
+          [class.claude-streaming]="isClaudeStreaming(msg)"
         >
           <span class="sender">{{ msg.email }}</span>
-          <span class="text">{{ msg.text }}</span>
-          <span class="time">{{ msg.timestamp | date: 'HH:mm:ss' }}</span>
+          <span class="text">{{ msg.text }}<span *ngIf="isClaudeStreaming(msg)" class="cursor-blink">▌</span></span>
+          <span class="time" *ngIf="!isClaudeStreaming(msg)">{{ msg.timestamp | date: 'HH:mm:ss' }}</span>
         </div>
       </div>
       <div class="input-row">
