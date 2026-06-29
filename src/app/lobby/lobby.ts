@@ -82,6 +82,12 @@ export class LobbyComponent implements OnInit, OnDestroy {
     await this.roomService.joinRoom(room.id);
   }
 
+  backToRooms(): void {
+    this.messages = [];
+    this.roomError = '';
+    this.roomService.leaveRoom();
+  }
+
   startCreate(): void {
     this.creating = true;
     this.newRoomName = '';

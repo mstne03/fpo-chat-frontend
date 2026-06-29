@@ -1,1 +1,101 @@
-/* You can add global styles to this file, and also import other style files */
+/* ============================================================
+   FPO CHAT — Sistema de diseño "HUD de red" (cyberpunk / glass)
+   ============================================================ */
+
+:root {
+  /* Color */
+  --void: #06080f;
+  --void-2: #0a0e1c;
+  --panel: rgba(18, 24, 40, 0.55);
+  --panel-solid: #121828;
+  --edge: rgba(56, 232, 255, 0.18);
+  --cyan: #38e8ff;
+  --magenta: #ff3d9a;
+  --ghost: #8a9bc4;
+  --mist: #e8f0ff;
+  --danger: #ff5a6a;
+
+  /* Tipografía */
+  --display: 'Orbitron', sans-serif;
+  --body: 'Inter', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Glow */
+  --glow-cyan: 0 0 20px rgba(56, 232, 255, 0.35);
+  --glow-magenta: 0 0 22px rgba(255, 61, 154, 0.4);
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: var(--body);
+  color: var(--mist);
+  background: var(--void);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+app-root {
+  display: block;
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* Fondo HUD: rejilla en perspectiva + halo que respira (la "firma") */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    linear-gradient(rgba(56, 232, 255, 0.05) 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(90deg, rgba(56, 232, 255, 0.05) 1px, transparent 1px) 0 0 / 44px 44px;
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 28%, #000 30%, transparent 78%);
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 28%, #000 30%, transparent 78%);
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: -20%;
+  z-index: -3;
+  background:
+    radial-gradient(40% 50% at 18% 12%, rgba(56, 232, 255, 0.16), transparent 70%),
+    radial-gradient(44% 52% at 82% 88%, rgba(255, 61, 154, 0.14), transparent 72%);
+  animation: breathe 14s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+
+/* Scrollbars finas y frías */
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(56, 232, 255, 0.22);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-thumb:hover { background: rgba(56, 232, 255, 0.4); }
+
+/* Foco accesible coherente con el tema */
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::after { animation: none; }
+  * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}

@@ -1,7 +1,12 @@
-<div class="lobby">
+<div class="lobby" [class.chat-open]="activeRoomId">
   <aside class="sidebar">
+    <header class="net-head">
+      <span class="net-mark">FPO · NET</span>
+      <span class="net-user">{{ currentEmail }}</span>
+    </header>
+
     <button class="new-room-btn" (click)="startCreate()" *ngIf="!creating">
-      + Nueva sala
+      <span class="plus">+</span> Nueva sala
     </button>
 
     <div class="create-box" *ngIf="creating">
@@ -19,6 +24,7 @@
       <span class="error" *ngIf="createError">{{ createError }}</span>
     </div>
 
+    <span class="list-label">Salas activas</span>
     <ul class="room-list">
       <li
         *ngFor="let room of rooms"
@@ -38,6 +44,7 @@
   <section class="chat-area">
     <ng-container *ngIf="activeRoomId; else noRoom">
       <div class="chat-header">
+        <button class="back-btn" (click)="backToRooms()" aria-label="Volver a salas">‹</button>
         <span class="room-title">{{ activeRoomName }}</span>
         <button class="delete-btn" (click)="deleteActiveRoom()">Borrar sala</button>
       </div>
@@ -65,8 +72,9 @@
 
     <ng-template #noRoom>
       <div class="placeholder">
+        <div class="placeholder-glyph" aria-hidden="true">◇</div>
         <p *ngIf="roomError" class="error">{{ roomError }}</p>
-        <p>Selecciona o crea una sala para empezar</p>
+        <p class="placeholder-text">Selecciona o crea una sala para empezar</p>
       </div>
     </ng-template>
   </section>

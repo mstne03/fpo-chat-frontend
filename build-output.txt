@@ -1,0 +1,21 @@
+
+> fpo-chat@0.0.0 build C:\Users\Marc\Desktop\FPO DUAL\WEBSOCKETS\FRONTEND
+> ng build "--configuration" "production"
+
+❯ Building...
+✔ Building...
+Initial chunk files | Names         |  Raw size | Estimated transfer size
+main-ICLW7XOH.js    | main          | 356.58 kB |                95.87 kB
+styles-5INURTSO.css | styles        |   0 bytes |                 0 bytes
+
+                    | Initial total | 356.58 kB |                95.87 kB
+
+Lazy chunk files    | Names         |  Raw size | Estimated transfer size
+chunk-B66MLoIL.js   | -             |  29.63 kB |                 7.08 kB
+chunk-CkBqBVkb.js   | lobby         |  13.88 kB |                 4.07 kB
+chunk-BqIBrMKW.js   | auth          |   3.70 kB |                 1.40 kB
+
+Application bundle generation complete. [6.066 seconds] - 2026-06-29T09:17:46.666Z
+
+Output location: C:\Users\Marc\Desktop\FPO DUAL\WEBSOCKETS\FRONTEND\dist\fpo-chat
+
