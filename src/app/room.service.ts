@@ -19,6 +19,12 @@ export interface ChatMessage {
   timestamp: string;
 }
 
+export type IncomingChatEvent =
+  | ({ type: 'message' } & ChatMessage)
+  | { type: 'claude_start'; id: string }
+  | { type: 'claude_delta'; id: string; text: string }
+  | { type: 'claude_end'; id: string };
+
 interface ControlIn {
   type: 'room_list' | 'room_update';
   rooms: { id: string; name: string; creator_uid: string; count: number }[];
@@ -30,7 +36,7 @@ export class RoomService {
   private router = inject(Router);
 
   private controlSocket$: WebSocketSubject<unknown> | null = null;
-  private chatSocket$: WebSocketSubject<ChatMessage> | null = null;
+  private chatSocket$: WebSocketSubject<IncomingChatEvent> | null = null;
 
   private controlReconnectAttempts = 0;
   private readonly maxReconnectAttempts = 5;
@@ -39,6 +45,9 @@ export class RoomService {
 
   rooms$ = new BehaviorSubject<Room[]>([]);
   messages$ = new Subject<ChatMessage>();
+  claudeStart$ = new Subject<{ id: string }>();
+  claudeDelta$ = new Subject<{ id: string; text: string }>();
+  claudeEnd$ = new Subject<{ id: string }>();
   roomError$ = new Subject<string>();
   activeRoomId: string | null = null;
 
@@ -110,7 +119,6 @@ export class RoomService {
       try {
         token = await this.authService.getToken();
       } catch {
-        // Firebase session is genuinely gone — sign out.
         this.authService.signOut();
         this.router.navigate(['/login']);
         return;
@@ -160,7 +168,7 @@ export class RoomService {
     this.leaveRoom();
     const token = await this.authService.getToken();
     this.activeRoomId = roomId;
-    this.chatSocket$ = webSocket<ChatMessage>({
+    this.chatSocket$ = webSocket<IncomingChatEvent>({
       url: `${environment.wsBase}/ws/chat/${roomId}?token=${token}`,
       closeObserver: {
         next: (event) => {
@@ -177,13 +185,30 @@ export class RoomService {
       },
     });
     this.chatSocket$.subscribe({
-      next: (msg) => this.messages$.next(msg),
+      next: (event) => this.routeChatEvent(event),
       error: () => {
         this.roomError$.next('Conexión con la sala perdida');
         this.activeRoomId = null;
         this.chatSocket$ = null;
       },
     });
+  }
+
+  private routeChatEvent(event: IncomingChatEvent): void {
+    switch (event.type) {
+      case 'message':
+        this.messages$.next({ uid: event.uid, email: event.email, text: event.text, timestamp: event.timestamp });
+        break;
+      case 'claude_start':
+        this.claudeStart$.next({ id: event.id });
+        break;
+      case 'claude_delta':
+        this.claudeDelta$.next({ id: event.id, text: event.text });
+        break;
+      case 'claude_end':
+        this.claudeEnd$.next({ id: event.id });
+        break;
+    }
   }
 
   leaveRoom(): void {
@@ -196,10 +221,11 @@ export class RoomService {
 
   send(text: string): void {
     this.chatSocket$?.next({
+      type: 'message',
       uid: '',
       email: '',
       text,
       timestamp: new Date().toISOString(),
-    });
+    } as unknown as IncomingChatEvent);
   }
 }
