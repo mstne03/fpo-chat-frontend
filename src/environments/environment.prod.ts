@@ -1,6 +1,6 @@
 export const environment = {
-  // Sustituye por la URL real de tu backend en Render (wss obligatorio sobre HTTPS).
-  wsUrl: 'wss://TU-BACKEND.onrender.com/ws',
+  // Backend desplegado en Render (wss obligatorio sobre HTTPS).
+  wsUrl: 'wss://fpo-chat-backend.onrender.com/ws',
   firebase: {
     apiKey: 'AIzaSyCimIMiGCs-VFNlJx3zmynBEvKaBPQirUM',
     authDomain: 'fpo-chat.firebaseapp.com',
