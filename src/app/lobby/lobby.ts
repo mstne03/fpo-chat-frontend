@@ -1,10 +1,11 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Subscription, firstValueFrom } from 'rxjs';
 import { RoomService, Room, ChatMessage } from '../room.service';
 import { AuthService } from '../auth.service';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-lobby',
@@ -12,6 +13,7 @@ import { AuthService } from '../auth.service';
   imports: [CommonModule, FormsModule],
   templateUrl: './lobby.html',
   styleUrls: ['./lobby.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LobbyComponent implements OnInit, OnDestroy {
   private roomService = inject(RoomService);
@@ -42,10 +44,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
-    const user = await new Promise<any>((resolve) => {
-      const s = this.authService.user$.subscribe((u) => resolve(u));
-      this.subs.push(s);
-    });
+    const user = await firstValueFrom(this.authService.user$.pipe(take(1)));
     if (!user) {
       this.router.navigate(['/login']);
       return;
